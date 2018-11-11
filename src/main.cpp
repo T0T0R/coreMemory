@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 #include <SDL.h>
 
 #include "main.h"
@@ -8,11 +9,6 @@
 
 const int WIN_WIDTH = 1024;
 const int WIN_HEIGHT = 768;
-
-
-//using namespace std;
-
-
 
 
 int main(int argc, char *argv[]) {
@@ -48,9 +44,13 @@ int main(int argc, char *argv[]) {
 
 	SDL_Texture *backgroundNorm = loadTexture("../resources/backgroundNormal.bmp", renderer);
 	SDL_Texture *backgroundInv = loadTexture("../resources/backgroundInverse.bmp", renderer);
-	SDL_Texture *toreLeft = loadTexture("../resources/toreLeft.bmp", renderer);
-	SDL_Texture *toreRight = loadTexture("../resources/toreRight.bmp", renderer);
-	if (backgroundNorm == nullptr ||backgroundInv == nullptr || toreLeft == nullptr|| toreRight == nullptr) {
+	SDL_Texture *toreLeftBlue = loadTexture("../resources/toreLeftBlue.bmp", renderer);
+	SDL_Texture *toreLeftRed = loadTexture("../resources/toreLeftRed.bmp", renderer);
+	SDL_Texture *toreRightBlue = loadTexture("../resources/toreRightBlue.bmp", renderer);
+	SDL_Texture *toreRightRed = loadTexture("../resources/toreRightRed.bmp", renderer);
+	if (backgroundNorm == nullptr ||backgroundInv == nullptr
+		|| toreLeftBlue == nullptr|| toreLeftRed == nullptr
+		|| toreRightBlue == nullptr|| toreRightRed == nullptr) {
 		SDL_DestroyRenderer(renderer);
 		SDL_DestroyWindow(window);
 		SDL_Quit();
@@ -66,22 +66,16 @@ int main(int argc, char *argv[]) {
 	renderTexture(backgroundInv, renderer, 0, 0);
 
 
+	std::vector<std::vector<bool>> gridBits (8, std::vector<bool>(8));
 
-	int toreW, toreH;
-	SDL_QueryTexture(toreLeft, NULL, NULL, &toreW, &toreH);
-	SDL_QueryTexture(toreRight, NULL, NULL, &toreW, &toreH);
-	for (int i {0}; i<=7; i++){
-		for (int j {0}; j<=7; j++) {
-			int x = 70+j*70 - toreW / 2;
-			int y = 70+i*70 - toreH / 2;
-			if ((i+j)%2 == 0){
-				renderTexture(toreLeft, renderer, x, y);
-			}else{
-				renderTexture(toreRight, renderer, x, y);
-			}
-			
+	for (int i{0}; i<=7; i++){
+		for (int j{0}; j<=7; j++){
+			gridBits[i][j]=false;
 		}
 	}
+
+	drawTores(gridBits, toreLeftBlue, toreLeftRed, toreRightBlue, toreRightRed, renderer);
+
 	
 	SDL_RenderPresent(renderer);
 
@@ -89,8 +83,10 @@ int main(int argc, char *argv[]) {
 
 
 
-	SDL_DestroyTexture(toreLeft);
-	SDL_DestroyTexture(toreRight);
+	SDL_DestroyTexture(toreLeftBlue);
+	SDL_DestroyTexture(toreLeftRed);
+	SDL_DestroyTexture(toreRightBlue);
+	SDL_DestroyTexture(toreRightRed);
 	SDL_DestroyTexture(backgroundNorm);
 	SDL_DestroyTexture(backgroundInv);
 	SDL_DestroyRenderer(renderer);
@@ -100,3 +96,29 @@ int main(int argc, char *argv[]) {
 }
 
 
+
+void drawTores(std::vector<std::vector<bool>> const& gridBits, SDL_Texture *toreLeftBlue,
+			   SDL_Texture *toreLeftRed,
+			   SDL_Texture *toreRightBlue,
+			   SDL_Texture *toreRightRed,
+			   SDL_Renderer *renderer){
+	int toreW, toreH;
+	SDL_QueryTexture(toreLeftBlue, NULL, NULL, &toreW, &toreH);
+	SDL_QueryTexture(toreLeftRed, NULL, NULL, &toreW, &toreH);
+	SDL_QueryTexture(toreRightBlue, NULL, NULL, &toreW, &toreH);
+	SDL_QueryTexture(toreRightRed, NULL, NULL, &toreW, &toreH);
+	for (int i {0}; i<=7; i++) {
+		for (int j {0}; j<=7; j++) {
+			int x = 70+j*70 - toreW / 2;
+			int y = 70+i*70 - toreH / 2;
+			if ((i+j)%2 == 0){
+				if (gridBits[i][j]) {renderTexture(toreLeftBlue, renderer, x, y);}
+				else{ renderTexture(toreLeftRed, renderer, x, y); }
+			} else {
+				if (gridBits[i][j]) { renderTexture(toreRightBlue, renderer, x, y); }
+				else { renderTexture(toreRightRed, renderer, x, y); }
+			}
+
+		}
+	}
+}
